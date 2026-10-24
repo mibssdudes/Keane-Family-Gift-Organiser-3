@@ -1,407 +1,722 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matthew's Birthday & Christmas Gift List</title>
-    <style>
-        :root {
-            --bg-cream: #FAF5EA;
-            --navy-dark: #0A192F;
-            --coral-main: #E2877C;
-            --coral-light: #F4C7C1;
-            --text-dark: #333333;
-            --panel-gray: #EBF0F5;
-            --white: #FFFFFF;
-            --border-subtle: #E2E8F0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Our Family Gift List</title>
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
+<style>
+:root {
+  --pink: #f4bdcc;
+  --sage: #dceee2;
+  --cream: #fffaf5;
+  --ink: #513947;
+  --muted: #806d78;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Trebuchet MS", Arial, sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+}
+header {
+  padding: 18px 6%;
+  background: var(--sage);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.logo { font: 23px Georgia, serif; }
+header span { font-size: 11px; letter-spacing: 2px; }
+.page { display: none; min-height: 75vh; padding: 40px 6%; }
+.page.active { display: block; }
+.home {
+  text-align: center;
+  background: linear-gradient(140deg,#fce8ee,#fffaf5 60%,#e8f4e9);
+  padding-top: 65px;
+  padding-bottom: 75px;
+}
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-size: 11px;
+  color: #a15e77;
+  font-weight: bold;
+}
+h1,h2,h3 { font-family: Georgia,serif; font-weight: normal; }
+h1 { font-size: clamp(38px,6vw,62px); line-height: 1.1; }
+h2 { font-size: 34px; }
+.intro {
+  max-width: 550px;
+  margin: 0 auto 25px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+input,select,textarea {
+  padding: 12px;
+  border: 1px solid #e7d5dd;
+  border-radius: 10px;
+  font: inherit;
+  color: var(--ink);
+  background: white;
+  width: 100%;
+}
+textarea { min-height: 80px; resize: vertical; }
+button { cursor: pointer; font: inherit; }
+.btn {
+  border: none;
+  border-radius: 30px;
+  padding: 13px 22px;
+  background: var(--pink);
+  color: var(--ink);
+  font-weight: bold;
+}
+.btn:hover { filter: brightness(.97); }
+.btn.secondary { background: var(--sage); }
+.btn.dark { background: var(--ink); color: white; }
+.btn.small { padding: 9px 14px; font-size: 13px; }
+.name-form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  max-width: 480px;
+  margin: auto;
+}
+.name-form input { flex: 1; min-width: 180px; }
+.control-link {
+  display: block;
+  margin: 38px auto 0;
+  border: 1px solid #d9c1cc;
+  border-radius: 25px;
+  background: #ffffffa8;
+  padding: 11px 18px;
+  color: var(--ink);
+}
+.container { max-width: 1100px; margin: auto; }
+.welcome { text-align: center; margin-bottom: 30px; }
+.muted { color: var(--muted); line-height: 1.6; }
+.children,.gift-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 20px;
+}
+.child-card,.gift-card,.panel {
+  background: white;
+  border: 1px solid #eee1e6;
+  border-radius: 18px;
+  overflow: hidden;
+}
+.child-art {
+  height: 170px;
+  display: grid;
+  place-items: center;
+  font-size: 65px;
+}
+.matthew { background: #dceee2; }
+.abby { background: #fce4ec; }
+.george { background: #e9e6fb; }
+.child-info,.gift-info { padding: 18px; }
+.child-info { text-align: center; }
+.child-info h3,.gift-info h3 { font-size: 25px; margin: 8px 0; }
+.child-info p,.gift-info p {
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: 14px;
+}
+.gift-art {
+  height: 140px;
+  display: grid;
+  place-items: center;
+  background: #f8e8ed;
+  font-size: 55px;
+  overflow: hidden;
+}
+.gift-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.price { font-weight: bold; margin: 14px 0; }
+.reserve {
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--sage);
+  color: #315340;
+  font-weight: bold;
+}
+.reserve:disabled { background: #f1e8ec; color: #897581; }
+.back {
+  background: transparent;
+  border: 1px solid #e5d3dc;
+  border-radius: 25px;
+  padding: 10px 16px;
+  margin-bottom: 22px;
+  color: var(--ink);
+}
+.message { margin: 18px auto; color: #315340; font-weight: bold; }
+.panel { padding: 22px; margin-bottom: 22px; }
+.panel h3 { margin-top: 0; font-size: 25px; }
+.admin-form {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 12px;
+}
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 13px; font-weight: bold; }
+.field.full { grid-column: 1 / -1; }
+.admin-list { display: grid; gap: 12px; }
+.admin-item {
+  border: 1px solid #eee1e6;
+  border-radius: 13px;
+  padding: 14px;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.admin-item p { margin: 5px 0; font-size: 13px; color: var(--muted); }
+.admin-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+.admin-actions button {
+  border: 1px solid #e5d3dc;
+  background: white;
+  color: var(--ink);
+  border-radius: 9px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+.status { font-size: 12px; font-weight: bold; }
+footer { text-align: center; padding: 25px; color: var(--muted); font-size: 13px; }
+@media(max-width:700px) {
+  .children,.gift-grid { grid-template-columns: 1fr; }
+  .child-art { height: 130px; }
+  .admin-form { grid-template-columns: 1fr; }
+  .field.full { grid-column: auto; }
+  .page { padding: 28px 5%; }
+  header span { display: none; }
+}
+</style>
+</head>
 
-        body {
-            background-color: var(--bg-cream);
-            color: var(--text-dark);
-            min-height: 100vh;
-            padding: 30px 20px;
-            display: flex;
-            justify-content: center;
-        }
+<body>
+<header>
+  <div class="logo">♡ Our Family Gift List</div>
+  <span>THOUGHTFUL GIFTS · HAPPY SURPRISES</span>
+</header>
 
-        .container {
-            width: 100%;
-            max-width: 1150px;
-        }
+<!-- HOMEPAGE -->
+<section id="home" class="page home active">
+  <div class="eyebrow">A little something special</div>
+  <h1>Gifts chosen<br>with love. ♡</h1>
+  <p class="intro">
+    Welcome to our family gift list!
+    Enter your name and discover a special gift
+    for Matthew, Abby or George.
+  </p>
 
-        /* --- GATEWAY HOMEPAGE --- */
-        #gateway-page {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 70vh;
-            width: 100%;
-        }
+  <form class="name-form" onsubmit="enterSite(event)">
+    <input id="visitorName" placeholder="Your name..." required>
+    <button class="btn" type="submit">Let's get started ♡</button>
+  </form>
 
-        .gateway-card {
-            background: var(--white);
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.04);
-            max-width: 480px;
-            width: 100%;
-            text-align: center;
-        }
+  <button class="control-link" onclick="openControl()">
+    ⚙ Website Control
+  </button>
+  <div id="homeMessage" class="message"></div>
+</section>
 
-        .gateway-card h1 {
-            color: var(--navy-dark);
-            font-size: 24px;
-            margin-bottom: 8px;
-        }
+<!-- CHILD SELECTION -->
+<section id="childrenPage" class="page">
+  <div class="container">
+    <button class="back" onclick="showPage('home')">← Home</button>
+    <div class="welcome">
+      <div class="eyebrow">Welcome, <span id="displayName"></span>!</div>
+      <h2>Who are you shopping for?</h2>
+      <p class="muted">Choose a child to explore their gift list.</p>
+    </div>
+    <div class="children">
+      <article class="child-card">
+        <div class="child-art matthew">🧸🎁</div>
+        <div class="child-info">
+          <h3>Matthew</h3>
+          <p>Find something wonderful for Matthew.</p>
+          <button class="btn" onclick="showGifts('Matthew')">View gifts →</button>
+        </div>
+      </article>
+      <article class="child-card">
+        <div class="child-art abby">🌸🎀</div>
+        <div class="child-info">
+          <h3>Abby</h3>
+          <p>Discover something special for Abby.</p>
+          <button class="btn" onclick="showGifts('Abby')">View gifts →</button>
+        </div>
+      </article>
+      <article class="child-card">
+        <div class="child-art george">🚀🪐</div>
+        <div class="child-info">
+          <h3>George</h3>
+          <p>Choose a lovely surprise for George.</p>
+          <button class="btn" onclick="showGifts('George')">View gifts →</button>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
 
-        .gateway-card p {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 24px;
-            line-height: 1.5;
-        }
+<!-- CHILD'S GIFT LIST -->
+<section id="giftsPage" class="page">
+  <div class="container">
+    <button class="back" onclick="showPage('childrenPage')">← Back to children</button>
+    <div class="welcome">
+      <div class="eyebrow">A little something special</div>
+      <h2 id="giftHeading">Gifts</h2>
+      <p class="muted">Choose a gift you'd love to give.</p>
+    </div>
+    <div id="giftGrid" class="gift-grid"></div>
+    <div id="giftMessage" class="message"></div>
+  </div>
+</section>
 
-        .portal-btn-group {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-        }
+<!-- PASSWORD SCREEN -->
+<section id="loginPage" class="page home">
+  <button class="back" onclick="showPage('home')">← Back to homepage</button>
+  <div class="eyebrow">Private administration</div>
+  <h2>Website Control 🔐</h2>
+  <p class="intro">Enter your password to manage the family gift list.</p>
+  <form class="name-form" onsubmit="login(event)">
+    <input id="adminPassword" type="password" placeholder="Control password" required>
+    <button class="btn" type="submit">Unlock controls</button>
+  </form>
+  <div id="loginMessage" class="message"></div>
+</section>
 
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s ease;
-        }
+<!-- ADMIN AREA -->
+<section id="adminPage" class="page">
+  <div class="container">
+    <button class="back" onclick="adminLogout()">← Exit Website Control</button>
+    <div class="welcome">
+      <div class="eyebrow">Private administration</div>
+      <h2>Manage your gift list ⚙</h2>
+      <p class="muted">Add, edit, delete and manage reservations.</p>
+    </div>
 
-        .btn-navy {
-            background-color: var(--navy-dark);
-            color: var(--white);
-        }
+    <div class="panel">
+      <h3 id="formHeading">Add a new gift 🎁</h3>
+      <form id="giftForm" onsubmit="saveGift(event)">
+        <div class="admin-form">
+          <div class="field">
+            <label for="giftChild">Child</label>
+            <select id="giftChild" required>
+              <option>Matthew</option>
+              <option>Abby</option>
+              <option>George</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="giftName">Gift name</label>
+            <input id="giftName" placeholder="e.g. Building set" required>
+          </div>
+          <div class="field">
+            <label for="giftPrice">Price</label>
+            <input id="giftPrice" placeholder="e.g. $30">
+          </div>
+          <div class="field">
+            <label for="giftEmoji">Gift emoji</label>
+            <input id="giftEmoji" placeholder="e.g. 🎁" value="🎁">
+          </div>
+          <div class="field full">
+            <label for="giftDescription">Description</label>
+            <textarea id="giftDescription" placeholder="Describe the gift..."></textarea>
+          </div>
+          <div class="field full">
+            <label for="giftImage">Picture URL (optional)</label>
+            <input id="giftImage" type="url" placeholder="https://example.com/gift.jpg">
+          </div>
+          <div class="field full">
+            <label for="giftLink">Shopping link (optional)</label>
+            <input id="giftLink" type="url" placeholder="https://shop.example.com/product">
+          </div>
+          <div class="field full">
+            <button class="btn" id="saveGiftButton" type="submit">＋ Add gift</button>
+            <button class="back" type="button" onclick="resetGiftForm()">Cancel editing</button>
+          </div>
+        </div>
+      </form>
+      <div id="adminMessage" class="message"></div>
+    </div>
 
-        .btn-navy:hover {
-            background-color: #122846;
-        }
+    <div class="panel">
+      <h3>All gifts and reservations</h3>
+      <p class="muted">
+        Reservation names are visible here only.
+        Resetting a reservation makes the gift available again.
+      </p>
+      <div id="adminGiftList" class="admin-list"></div>
+    </div>
+  </div>
+</section>
 
-        .btn-coral {
-            background-color: var(--coral-main);
-            color: var(--white);
-        }
+<footer>Made with love ♡ A little extra magic for our family.</footer>
 
-        .btn-coral:hover {
-            background-color: #CD7368;
-        }
+<script>
+/*
+ DEMO ONLY:
+ The password and reservations are stored in client-side code/browser
+ storage. This is not secure for a publicly accessible website.
+*/
+const CONTROL_PASSWORD = "54155206";
 
-        .pin-wrapper {
-            display: none;
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-subtle);
-            animation: fadeIn 0.3s ease-in-out;
-        }
+const defaultGifts = [
+  {id:"m1",child:"Matthew",name:"Building Adventure",description:"A fun building set for creating something amazing.",price:"$30",emoji:"🧩",image:"",link:""},
+  {id:"m2",child:"Matthew",name:"Games Night",description:"A new game for plenty of family fun.",price:"$25",emoji:"🎲",image:"",link:""},
+  {id:"m3",child:"Matthew",name:"Outdoor Explorer",description:"Something exciting for outdoor adventures.",price:"$35",emoji:"⚽",image:"",link:""},
+  {id:"a1",child:"Abby",name:"Creative Craft Kit",description:"Beautiful supplies for making something special.",price:"$25",emoji:"🎨",image:"",link:""},
+  {id:"a2",child:"Abby",name:"Cosy Reading Set",description:"A lovely book and a little reading-time treat.",price:"$30",emoji:"📚",image:"",link:""},
+  {id:"a3",child:"Abby",name:"Pretty Accessories",description:"A thoughtful little gift to brighten her day.",price:"$20",emoji:"🎀",image:"",link:""},
+  {id:"g1",child:"George",name:"Space Explorer",description:"A gift for a curious little space enthusiast.",price:"$30",emoji:"🚀",image:"",link:""},
+  {id:"g2",child:"George",name:"Dinosaur Discovery",description:"A prehistoric surprise for hours of fun.",price:"$25",emoji:"🦕",image:"",link:""},
+  {id:"g3",child:"George",name:"Little Builder",description:"A hands-on gift for making and creating.",price:"$35",emoji:"🏗️",image:"",link:""}
+];
 
-        .pin-input {
-            padding: 12px;
-            width: 100%;
-            max-width: 200px;
-            text-align: center;
-            font-size: 18px;
-            letter-spacing: 5px;
-            border: 2px solid #CBD5E1;
-            border-radius: 6px;
-            margin-bottom: 12px;
-            outline: none;
-        }
+function loadData(key, fallback) {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
 
-        .pin-input:focus {
-            border-color: var(--coral-main);
-        }
+let gifts = loadData("familyGiftItems", defaultGifts);
+let reservations = loadData("familyGiftReservations", {});
+let visitor = "";
+let selectedChild = "";
+let editingId = null;
+let adminUnlocked = false;
 
-        /* --- DASHBOARD SYSTEM --- */
-        #main-app-dashboard {
-            display: none;
-        }
+function saveData() {
+  try {
+    localStorage.setItem("familyGiftItems", JSON.stringify(gifts));
+    localStorage.setItem("familyGiftReservations", JSON.stringify(reservations));
+    return true;
+  } catch (e) {
+    alert("Your browser could not save the changes.");
+    return false;
+  }
+}
 
-        .session-control-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+function showPage(id) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  window.scrollTo(0, 0);
+}
 
-        .badge-role {
-            font-size: 12px;
-            font-weight: bold;
-            padding: 4px 12px;
-            border-radius: 12px;
-            background-color: var(--coral-light);
-            color: #A05248;
-        }
+function enterSite(event) {
+  event.preventDefault();
+  visitor = document.getElementById("visitorName").value.trim();
+  if (!visitor) return;
+  document.getElementById("displayName").textContent = visitor;
+  showPage("childrenPage");
+}
 
-        .exit-btn {
-            background: transparent;
-            border: 1px solid #CBD5E1;
-            padding: 6px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-        }
+function openControl() {
+  document.getElementById("adminPassword").value = "";
+  document.getElementById("loginMessage").textContent = "";
+  showPage("loginPage");
+}
 
-        .exit-btn:hover {
-            background-color: #F8FAFC;
-        }
+function login(event) {
+  event.preventDefault();
+  const password = document.getElementById("adminPassword").value;
+  if (password !== CONTROL_PASSWORD) {
+    document.getElementById("loginMessage").textContent =
+      "That password isn't correct. Please try again.";
+    return;
+  }
+  adminUnlocked = true;
+  document.getElementById("adminPassword").value = "";
+  resetGiftForm();
+  renderAdmin();
+  showPage("adminPage");
+}
 
-        .main-header {
-            margin-bottom: 30px;
-        }
+function adminLogout() {
+  adminUnlocked = false;
+  editingId = null;
+  showPage("home");
+}
 
-        .main-header .pre-title {
-            color: #C25E52;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            display: block;
-            margin-bottom: 4px;
-        }
+function showGifts(child) {
+  selectedChild = child;
+  document.getElementById("giftHeading").textContent = "Gifts for " + child;
+  document.getElementById("giftMessage").textContent = "";
+  renderGifts();
+  showPage("giftsPage");
+}
 
-        .main-header h2 {
-            color: var(--navy-dark);
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
+function renderGifts() {
+  const grid = document.getElementById("giftGrid");
+  grid.replaceChildren();
 
-        .main-header p {
-            font-size: 13px;
-            color: #555555;
-        }
+  gifts.filter(g => g.child === selectedChild).forEach(gift => {
+    const reserved = Boolean(reservations[gift.id]);
+    const card = document.createElement("article");
+    card.className = "gift-card";
 
-        .family-column {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-            max-width: 650px;
-            margin: 0 auto;
-            width: 100%;
-        }
+    const art = document.createElement("div");
+    art.className = "gift-art";
+    if (gift.image) {
+      const img = document.createElement("img");
+      img.src = gift.image;
+      img.alt = gift.name;
+      img.onerror = () => { art.textContent = gift.emoji || "🎁"; };
+      art.append(img);
+    } else {
+      art.textContent = gift.emoji || "🎁";
+    }
 
-        .banner-hero-card {
-            background-color: var(--navy-dark);
-            color: var(--white);
-            border-radius: 12px;
-            padding: 24px;
-        }
+    const info = document.createElement("div");
+    info.className = "gift-info";
 
-        .banner-hero-card .section-num {
-            font-size: 11px;
-            opacity: 0.6;
-            letter-spacing: 1px;
-            display: block;
-            margin-bottom: 8px;
-        }
+    const title = document.createElement("h3");
+    title.textContent = gift.name;
 
-        .banner-hero-card h3 {
-            font-size: 18px;
-            margin-bottom: 6px;
-            font-weight: 600;
-        }
+    const desc = document.createElement("p");
+    desc.textContent = gift.description || "";
 
-        .banner-hero-card p {
-            font-size: 13px;
-            opacity: 0.8;
-            margin-bottom: 18px;
-            line-height: 1.4;
-        }
+    info.append(title, desc);
 
-        .user-identity-tray {
-            display: flex;
-            gap: 10px;
-            max-width: 380px;
-        }
+    if (gift.price) {
+      const price = document.createElement("div");
+      price.className = "price";
+      price.textContent = gift.price;
+      info.append(price);
+    }
 
-        .user-identity-tray input {
-            flex: 1;
-            padding: 10px 14px;
-            border: none;
-            border-radius: 6px;
-            outline: none;
-            font-size: 13px;
-            color: #333;
-        }
+    if (gift.link) {
+      const link = document.createElement("p");
+      const a = document.createElement("a");
+      a.href = gift.link;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.textContent = "View gift online ↗";
+      link.append(a);
+      info.append(link);
+    }
 
-        .column-heading-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
+    const button = document.createElement("button");
+    button.className = "reserve";
+    button.textContent = reserved ? "✓ Reserved" : "♡ Reserve this gift";
+    button.disabled = reserved;
+    if (!reserved) button.onclick = () => reserveGift(gift);
+    info.append(button);
 
-        .column-heading-row h4 {
-            font-size: 15px;
-            color: var(--navy-dark);
-            font-weight: 700;
-        }
+    card.append(art, info);
+    grid.append(card);
+  });
 
-        .column-heading-row span {
-            font-size: 11px;
-            color: #777;
-        }
+  if (!grid.children.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "No gifts have been added yet. Check back soon!";
+    grid.append(empty);
+  }
+}
 
-        .gift-cards-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
+function reserveGift(gift) {
+  if (!visitor) {
+    alert("Please enter your name first.");
+    showPage("home");
+    return;
+  }
+  if (reservations[gift.id]) {
+    renderGifts();
+    return;
+  }
 
-        @media (max-width: 580px) {
-            .gift-cards-container {
-                grid-template-columns: 1fr;
-            }
-        }
+  if (!confirm("Reserve " + gift.name + " for " + selectedChild + "?")) return;
 
-        .live-gift-item-card {
-            background: var(--white);
-            border-radius: 8px;
-            padding: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.01);
-            border-top: 3px solid var(--coral-main);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 190px;
-        }
+  reservations[gift.id] = {
+    name: visitor,
+    child: selectedChild,
+    gift: gift.name
+  };
 
-        .item-meta-top h5 {
-            font-size: 14px;
-            color: var(--navy-dark);
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
+  if (!saveData()) {
+    delete reservations[gift.id];
+    return;
+  }
 
-        .item-meta-top p {
-            font-size: 12px;
-            color: #666;
-            line-height: 1.4;
-        }
+  document.getElementById("giftMessage").textContent =
+    "Thank you! Your gift has been reserved. ♡";
+  renderGifts();
+}
 
-        .item-meta-bottom {
-            margin-top: 14px;
-        }
+function resetGiftForm() {
+  editingId = null;
+  document.getElementById("giftForm").reset();
+  document.getElementById("giftEmoji").value = "🎁";
+  document.getElementById("formHeading").textContent = "Add a new gift 🎁";
+  document.getElementById("saveGiftButton").textContent = "＋ Add gift";
+  document.getElementById("adminMessage").textContent = "";
+}
 
-        .item-price-tag {
-            font-weight: 700;
-            font-size: 14px;
-            color: var(--text-dark);
-            margin-bottom: 10px;
-        }
+function saveGift(event) {
+  event.preventDefault();
+  if (!adminUnlocked) return;
 
-        .action-card-btn {
-            width: 100%;
-            padding: 8px;
-            font-size: 12px;
-            border-radius: 4px;
-            margin-bottom: 6px;
-        }
+  const gift = {
+    id: editingId || ("gift-" + Date.now() + "-" + Math.random().toString(36).slice(2,7)),
+    child: document.getElementById("giftChild").value,
+    name: document.getElementById("giftName").value.trim(),
+    price: document.getElementById("giftPrice").value.trim(),
+    emoji: document.getElementById("giftEmoji").value.trim() || "🎁",
+    description: document.getElementById("giftDescription").value.trim(),
+    image: document.getElementById("giftImage").value.trim(),
+    link: document.getElementById("giftLink").value.trim()
+  };
 
-        /* --- THE WEB DESIGNER CONTROLS PANEL --- */
-        .planning-desk-column {
-            background-color: var(--panel-gray);
-            border-radius: 16px;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 22px;
-            max-width: 650px;
-            margin: 0 auto;
-            width: 100%;
-        }
+  if (!gift.name) return;
 
-        .desk-header span {
-            font-size: 11px;
-            color: var(--coral-main);
-            font-weight: bold;
-            letter-spacing: 1px;
-            display: block;
-        }
+  if (editingId) {
+    gifts = gifts.map(g => g.id === editingId ? gift : g);
+    if (reservations[editingId]) {
+      reservations[editingId].child = gift.child;
+      reservations[editingId].gift = gift.name;
+    }
+  } else {
+    gifts.push(gift);
+  }
 
-        .desk-header h3 {
-            font-size: 18px;
-            color: var(--navy-dark);
-            margin-top: 2px;
-        }
+  if (!saveData()) return;
 
-        .metrics-grid-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
+  resetGiftForm();
+  renderAdmin();
+  document.getElementById("adminMessage").textContent =
+    "Gift saved successfully. ♡";
+}
 
-        .metric-data-card {
-            background: var(--white);
-            padding: 12px 6px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-        }
+function editGift(id) {
+  if (!adminUnlocked) return;
+  const gift = gifts.find(g => g.id === id);
+  if (!gift) return;
 
-        .metric-data-card span {
-            display: block;
-            font-size: 10px;
-            color: #666;
-            margin-bottom: 2px;
-        }
+  editingId = id;
+  document.getElementById("giftChild").value = gift.child;
+  document.getElementById("giftName").value = gift.name;
+  document.getElementById("giftPrice").value = gift.price || "";
+  document.getElementById("giftEmoji").value = gift.emoji || "🎁";
+  document.getElementById("giftDescription").value = gift.description || "";
+  document.getElementById("giftImage").value = gift.image || "";
+  document.getElementById("giftLink").value = gift.link || "";
 
-        .metric-data-card strong {
-            font-size: 16px;
-            color: var(--navy-dark);
-        }
+  document.getElementById("formHeading").textContent = "Edit gift ✏️";
+  document.getElementById("saveGiftButton").textContent = "Save changes";
+  document.getElementById("adminMessage").textContent = "";
+  window.scrollTo(0, 0);
+}
 
-        .desk-sub-section {
-            background: var(--white);
-            border-radius: 10px;
-            padding: 16px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.01);
-        }
+function toggleReservation(id) {
+  if (!adminUnlocked) return;
 
-        .desk-sub-section h4 {
-            font-size: 13px;
-            color: var(--navy-dark);
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
+  if (reservations[id]) {
+    if (!confirm("Unreserve this gift and make it available again?")) return;
+    delete reservations[id];
+  } else {
+    const gift = gifts.find(g => g.id === id);
+    const name = prompt("Who reserved this gift?");
+    if (!name || !name.trim()) return;
+    reservations[id] = {
+      name: name.trim(),
+      child: gift.child,
+      gift: gift.name
+    };
+  }
 
-        .reservation-empty-text {
-            font-size: 12px;
-            color: #888;
-            text-align: center;
-            padding: 15px 0;
-        }
+  if (!saveData()) return;
+  renderAdmin();
+}
 
-        .manage-items-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-height: 220px;
-            overflow-y: auto;
-        }
+function deleteGift(id) {
+  if (!adminUnlocked) return;
+  const gift = gifts.find(g => g.id === id);
+  if (!gift) return;
 
-        .editable-item-row {
-            border-bottom: 1px solid #F1F5F9;
-            padding-bottom: 8px;
-            margin-bottom: 4px;
-            display: flex;
+  if (!confirm('Delete "' + gift.name + '"? This cannot be undone.')) return;
+
+  gifts = gifts.filter(g => g.id !== id);
+  delete reservations[id];
+
+  if (!saveData()) return;
+  if (editingId === id) resetGiftForm();
+  renderAdmin();
+}
+
+function renderAdmin() {
+  if (!adminUnlocked) return;
+
+  const list = document.getElementById("adminGiftList");
+  list.replaceChildren();
+
+  ["Matthew", "Abby", "George"].forEach(child => {
+    const heading = document.createElement("h3");
+    heading.textContent = child;
+    list.append(heading);
+
+    const childGifts = gifts.filter(g => g.child === child);
+
+    if (!childGifts.length) {
+      const empty = document.createElement("p");
+      empty.className = "muted";
+      empty.textContent = "No gifts added yet.";
+      list.append(empty);
+    }
+
+    childGifts.forEach(gift => {
+      const reservation = reservations[gift.id];
+      const item = document.createElement("div");
+      item.className = "admin-item";
+
+      const details = document.createElement("div");
+      const name = document.createElement("strong");
+      name.textContent = (gift.emoji || "🎁") + " " + gift.name;
+
+      const price = document.createElement("p");
+      price.textContent = gift.price || "No price entered";
+
+      const status = document.createElement("div");
+      status.className = "status";
+      status.textContent = reservation
+        ? "Reserved by: " + reservation.name
+        : "Available";
+
+      details.append(name, price, status);
+
+      const actions = document.createElement("div");
+      actions.className = "admin-actions";
+
+      const edit = document.createElement("button");
+      edit.textContent = "✏️ Edit";
+      edit.onclick = () => editGift(gift.id);
+
+      const reserve = document.createElement("button");
+      reserve.textContent = reservation ? "↩ Unreserve" : "✓ Mark reserved";
+      reserve.onclick = () => toggleReservation(gift.id);
+
+      const remove = document.createElement("button");
+      remove.textContent = "🗑 Delete";
+      remove.onclick = () => deleteGift(gift.id);
+
+      actions.append(edit, reserve, remove);
+      item.append(details, actions);
+      list.append(item);
+    });
+  });
+}
+</script>
+</body>
+</html>
