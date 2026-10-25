@@ -364,12 +364,9 @@ footer { text-align: center; padding: 25px; color: var(--muted); font-size: 13px
 <footer>Made with love ♡ A little extra magic for our family.</footer>
 
 <script>
-/*
- DEMO ONLY:
- The password and reservations are stored in client-side code/browser
- storage. This is not secure for a publicly accessible website.
-*/
-const CONTROL_PASSWORD = "54155206";
+// Gift data is stored centrally in Firebase through a protected Netlify function.
+const API_URL = "/.netlify/functions/family-data";
+let adminToken = "";
 
 const defaultGifts = [
   {id:"m1",child:"Matthew",name:"Building Adventure",description:"A fun building set for creating something amazing.",price:"$30",emoji:"🧩",image:"",link:""},
@@ -383,29 +380,47 @@ const defaultGifts = [
   {id:"g3",child:"George",name:"Little Builder",description:"A hands-on gift for making and creating.",price:"$35",emoji:"🏗️",image:"",link:""}
 ];
 
-function loadData(key, fallback) {
-  try {
-    const value = localStorage.getItem(key);
-    return value ? JSON.parse(value) : fallback;
-  } catch (e) {
-    return fallback;
-  }
-}
-
-let gifts = loadData("familyGiftItems", defaultGifts);
-let reservations = loadData("familyGiftReservations", {});
+let gifts = [...defaultGifts];
+let reservations = {};
 let visitor = "";
 let selectedChild = "";
 let editingId = null;
 let adminUnlocked = false;
 
-function saveData() {
+async function apiRequest(payload, needsAdmin = false) {
+  const headers = { "Content-Type": "application/json" };
+  if (needsAdmin && adminToken) headers.Authorization = "Bearer " + adminToken;
+  const response = await fetch(API_URL, {
+    method: payload ? "POST" : "GET",
+    headers,
+    body: payload ? JSON.stringify(payload) : undefined,
+    cache: "no-store"
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Connection problem. Please try again.");
+  return data;
+}
+
+async function refreshData(showError = false) {
   try {
-    localStorage.setItem("familyGiftItems", JSON.stringify(gifts));
-    localStorage.setItem("familyGiftReservations", JSON.stringify(reservations));
+    const data = await apiRequest(null, adminUnlocked);
+    gifts = Array.isArray(data.gifts) ? data.gifts : [];
+    reservations = data.reservations || {};
+    if (selectedChild) renderGifts();
+    if (adminUnlocked) renderAdmin();
     return true;
-  } catch (e) {
-    alert("Your browser could not save the changes.");
+  } catch (error) {
+    if (showError) alert(error.message);
+    return false;
+  }
+}
+
+async function saveData() {
+  try {
+    await apiRequest({action:"save", gifts, reservations}, true);
+    return true;
+  } catch (error) {
+    alert(error.message);
     return false;
   }
 }
@@ -430,25 +445,34 @@ function openControl() {
   showPage("loginPage");
 }
 
-function login(event) {
+async function login(event) {
   event.preventDefault();
   const password = document.getElementById("adminPassword").value;
-  if (password !== CONTROL_PASSWORD) {
-    document.getElementById("loginMessage").textContent =
-      "That password isn't correct. Please try again.";
-    return;
+  const message = document.getElementById("loginMessage");
+  message.textContent = "Checking password…";
+  try {
+    const result = await apiRequest({action:"login", password});
+    adminToken = result.token;
+    adminUnlocked = true;
+    document.getElementById("adminPassword").value = "";
+    const loaded = await refreshData(false);
+    if (!loaded) throw new Error("Could not load the gift list. Please try again.");
+    resetGiftForm();
+    renderAdmin();
+    showPage("adminPage");
+  } catch (error) {
+    adminUnlocked = false;
+    adminToken = "";
+    message.textContent = error.message || "That password isn't correct. Please try again.";
   }
-  adminUnlocked = true;
-  document.getElementById("adminPassword").value = "";
-  resetGiftForm();
-  renderAdmin();
-  showPage("adminPage");
 }
 
 function adminLogout() {
   adminUnlocked = false;
+  adminToken = "";
   editingId = null;
   showPage("home");
+  refreshData(false);
 }
 
 function showGifts(child) {
@@ -527,7 +551,7 @@ function renderGifts() {
   }
 }
 
-function reserveGift(gift) {
+async function reserveGift(gift) {
   if (!visitor) {
     alert("Please enter your name first.");
     showPage("home");
@@ -540,20 +564,16 @@ function reserveGift(gift) {
 
   if (!confirm("Reserve " + gift.name + " for " + selectedChild + "?")) return;
 
-  reservations[gift.id] = {
-    name: visitor,
-    child: selectedChild,
-    gift: gift.name
-  };
-
-  if (!saveData()) {
-    delete reservations[gift.id];
-    return;
+  try {
+    await apiRequest({action:"reserve", id:gift.id, name:visitor});
+    await refreshData(false);
+    document.getElementById("giftMessage").textContent =
+      "Thank you! Your gift has been reserved. ♡";
+    renderGifts();
+  } catch (error) {
+    await refreshData(false);
+    document.getElementById("giftMessage").textContent = error.message;
   }
-
-  document.getElementById("giftMessage").textContent =
-    "Thank you! Your gift has been reserved. ♡";
-  renderGifts();
 }
 
 function resetGiftForm() {
@@ -565,7 +585,7 @@ function resetGiftForm() {
   document.getElementById("adminMessage").textContent = "";
 }
 
-function saveGift(event) {
+async function saveGift(event) {
   event.preventDefault();
   if (!adminUnlocked) return;
 
@@ -592,7 +612,7 @@ function saveGift(event) {
     gifts.push(gift);
   }
 
-  if (!saveData()) return;
+  if (!await saveData()) return;
 
   resetGiftForm();
   renderAdmin();
@@ -620,7 +640,7 @@ function editGift(id) {
   window.scrollTo(0, 0);
 }
 
-function toggleReservation(id) {
+async function toggleReservation(id) {
   if (!adminUnlocked) return;
 
   if (reservations[id]) {
@@ -637,11 +657,11 @@ function toggleReservation(id) {
     };
   }
 
-  if (!saveData()) return;
+  if (!await saveData()) return;
   renderAdmin();
 }
 
-function deleteGift(id) {
+async function deleteGift(id) {
   if (!adminUnlocked) return;
   const gift = gifts.find(g => g.id === id);
   if (!gift) return;
@@ -651,7 +671,7 @@ function deleteGift(id) {
   gifts = gifts.filter(g => g.id !== id);
   delete reservations[id];
 
-  if (!saveData()) return;
+  if (!await saveData()) return;
   if (editingId === id) resetGiftForm();
   renderAdmin();
 }
@@ -717,6 +737,8 @@ function renderAdmin() {
     });
   });
 }
+window.addEventListener("online", () => refreshData(false));
+refreshData(false);
 </script>
 </body>
 </html>

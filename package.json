@@ -1,0 +1,7 @@
+{
+  "name": "keane-family-gift-organiser",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Family gift list hosted on Netlify with Firebase Realtime Database",
+  "dependencies": { "firebase-admin": "^13.5.0" }
+}
