@@ -1,3 +1,4 @@
+
 const { initializeApp, getApps, cert } = require('firebase-admin/app');
 const { getDatabase } = require('firebase-admin/database');
 const crypto = require('node:crypto');
@@ -26,13 +27,16 @@ function db() {
   }
   return getDatabase();
 }
+
 function signature(payload) {
   return crypto.createHmac('sha256', process.env.FAMILY_SESSION_SECRET).update(payload).digest('base64url');
 }
+
 function makeToken() {
   const payload = Buffer.from(JSON.stringify({exp: Date.now() + 8 * 60 * 60 * 1000})).toString('base64url');
   return payload + '.' + signature(payload);
 }
+
 function isAdmin(event) {
   const auth = event.headers.authorization || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
@@ -44,10 +48,15 @@ function isAdmin(event) {
   try { return JSON.parse(Buffer.from(parts[0], 'base64url').toString()).exp > Date.now(); }
   catch { return false; }
 }
+
 function response(statusCode, body) {
   return { statusCode, headers: {'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'}, body: JSON.stringify(body) };
 }
-function cleanText(value, max = 500) { return typeof value === 'string' ? value.trim().slice(0, max) : ''; }
+
+function cleanText(value, max = 500) {
+  return typeof value === 'string' ? value.trim().slice(0, max) : '';
+}
+
 async function currentData() {
   const ref = db().ref('familyGiftList');
   let snap = await ref.get();
@@ -56,27 +65,49 @@ async function currentData() {
     snap = await ref.get();
   }
   const val = snap.val() || {};
-  return {gifts: Array.isArray(val.gifts) ? val.gifts : DEFAULT_GIFTS, reservations: val.reservations && typeof val.reservations === 'object' ? val.reservations : {}};
+  return {
+    gifts: Array.isArray(val.gifts) ? val.gifts : DEFAULT_GIFTS,
+    reservations: val.reservations && typeof val.reservations === 'object' ? val.reservations : {}
+  };
 }
+
 exports.handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return {statusCode:204, headers:{'access-control-allow-origin':'*','access-control-allow-headers':'content-type,authorization','access-control-allow-methods':'GET,POST'},body:''};
+  if (event.httpMethod === 'OPTIONS') return {
+    statusCode:204,
+    headers:{
+      'access-control-allow-origin':'*',
+      'access-control-allow-headers':'content-type,authorization',
+      'access-control-allow-methods':'GET,POST'
+    },
+    body:''
+  };
+
   if (!['GET','POST'].includes(event.httpMethod)) return response(405,{error:'Method not allowed'});
+
   try {
     if (event.httpMethod === 'GET') {
       const data = await currentData();
       if (isAdmin(event)) return response(200, data);
       const reserved = {};
-      Object.keys(data.reservations).forEach(id => { if (data.reservations[id]) reserved[id] = true; });
+      Object.keys(data.reservations).forEach(id => {
+        if (data.reservations[id]) reserved[id] = true;
+      });
       return response(200,{gifts:data.gifts,reservations:reserved});
     }
+
     let body;
-    try { body = JSON.parse(event.body || '{}'); } catch { return response(400,{error:'Invalid request'}); }
+    try { body = JSON.parse(event.body || '{}'); }
+    catch { return response(400,{error:'Invalid request'}); }
+
     if (body.action === 'login') {
       const provided = Buffer.from(cleanText(body.password, 200));
       const actual = Buffer.from(process.env.FAMILY_PASSWORD || '');
-      if (provided.length !== actual.length || !crypto.timingSafeEqual(provided, actual)) return response(401,{error:'That password is not correct.'});
+      if (provided.length !== actual.length || !crypto.timingSafeEqual(provided, actual)) {
+        return response(401,{error:'That password is not correct.'});
+      }
       return response(200,{token:makeToken()});
     }
+
     if (body.action === 'reserve') {
       const id = cleanText(body.id, 100), name = cleanText(body.name, 80);
       if (!id || !name) return response(400,{error:'Please provide your name.'});
@@ -88,22 +119,43 @@ exports.handler = async (event) => {
       if (!result.committed) return response(409,{error:'Someone has already reserved this gift. Please refresh the page.'});
       return response(200,{ok:true});
     }
+
     if (!isAdmin(event)) return response(401,{error:'Please unlock Website Control again.'});
+
     if (body.action === 'save') {
-      if (!Array.isArray(body.gifts) || !body.reservations || typeof body.reservations !== 'object') return response(400,{error:'Invalid gift list.'});
+      if (!Array.isArray(body.gifts) || !body.reservations || typeof body.reservations !== 'object') {
+        return response(400,{error:'Invalid gift list.'});
+      }
       if (body.gifts.length > 500) return response(400,{error:'Too many gifts.'});
+
       const gifts = body.gifts.map(g => ({
-        id:cleanText(g.id,100), child:CHILDREN.includes(g.child) ? g.child : 'Matthew',
-        name:cleanText(g.name,150), description:cleanText(g.description,1000), price:cleanText(g.price,50),
-        emoji:cleanText(g.emoji,20) || '🎁', image:cleanText(g.image,1000), link:cleanText(g.link,1000)
+        id:cleanText(g.id,100),
+        child:CHILDREN.includes(g.child) ? g.child : 'Matthew',
+        name:cleanText(g.name,150),
+        description:cleanText(g.description,1000),
+        price:cleanText(g.price,50),
+        emoji:cleanText(g.emoji,20) || '🎁',
+        image: typeof g.image === 'string' && g.image.length <= 600000 &&
+          (/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(g.image) || /^https?:\/\//i.test(g.image))
+          ? g.image : '',
+        link:cleanText(g.link,1000)
       })).filter(g => g.id && g.name);
+
       const reservations = {};
       for (const [id,r] of Object.entries(body.reservations)) {
-        if (gifts.some(g => g.id === id) && r && typeof r === 'object') reservations[id] = {name:cleanText(r.name,80),child:cleanText(r.child,30),gift:cleanText(r.gift,150)};
+        if (gifts.some(g => g.id === id) && r && typeof r === 'object') {
+          reservations[id] = {
+            name:cleanText(r.name,80),
+            child:cleanText(r.child,30),
+            gift:cleanText(r.gift,150)
+          };
+        }
       }
+
       await db().ref('familyGiftList').set({gifts,reservations});
       return response(200,{ok:true});
     }
+
     return response(400,{error:'Unknown action.'});
   } catch (err) {
     console.error('family-data function error:', err && err.message);
