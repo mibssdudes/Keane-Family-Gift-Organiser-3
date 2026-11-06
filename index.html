@@ -372,6 +372,10 @@ footer { text-align: center; padding: 25px; color: var(--muted); font-size: 13px
             <input id="giftImageFile" type="file" accept="image/*">
             <small class="muted">Choose a photo from Files or your device. Images are automatically resized before saving.</small>
             <div id="giftImagePreview" class="muted" style="margin-top:8px"></div>
+            <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-weight:normal">
+              <input id="removeGiftImage" type="checkbox" style="width:auto">
+              Remove the currently saved picture
+            </label>
           </div>
           <div class="field full">
             <label for="giftLink">Shopping link (optional)</label>
@@ -404,6 +408,7 @@ footer { text-align: center; padding: 25px; color: var(--muted); font-size: 13px
 const API_URL = "/.netlify/functions/family-data";
 let adminToken = "";
 let selectedImageData = "";
+let removeExistingImage = false;
 
 const defaultGifts = [
   {id:"m1",child:"Matthew",name:"Building Adventure",description:"A fun building set for creating something amazing.",price:"$30",emoji:"🧩",image:"",link:""},
@@ -426,6 +431,14 @@ let adminUnlocked = false;
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("giftImageFile").addEventListener("change", handleGiftImage);
+  document.getElementById("removeGiftImage").addEventListener("change", event => {
+    removeExistingImage = event.target.checked;
+    if (removeExistingImage) {
+      selectedImageData = "";
+      document.getElementById("giftImageFile").value = "";
+      document.getElementById("giftImagePreview").textContent = "The saved picture will be removed when you save.";
+    }
+  });
   document.getElementById("giftSearch").addEventListener("input", filterGiftList);
   document.getElementById("minPrice").addEventListener("input", filterGiftList);
   document.getElementById("maxPrice").addEventListener("input", filterGiftList);
@@ -720,6 +733,8 @@ async function handleGiftImage(event) {
     }
     if (compressed.length > 590000) throw new Error("That image is still too large. Please choose a smaller photo.");
     selectedImageData = compressed;
+    removeExistingImage = false;
+    document.getElementById("removeGiftImage").checked = false;
     preview.innerHTML = "";
     const thumb = document.createElement("img");
     thumb.src = selectedImageData;
@@ -739,6 +754,8 @@ async function handleGiftImage(event) {
 function resetGiftForm() {
   editingId = null;
   selectedImageData = "";
+  removeExistingImage = false;
+  document.getElementById("removeGiftImage").checked = false;
   document.getElementById("giftImageFile").value = "";
   document.getElementById("giftImagePreview").textContent = "";
   document.getElementById("giftForm").reset();
@@ -759,7 +776,7 @@ async function saveGift(event) {
     price: document.getElementById("giftPrice").value.trim(),
     emoji: document.getElementById("giftEmoji").value.trim() || "🎁",
     description: document.getElementById("giftDescription").value.trim(),
-    image: selectedImageData || (editingId ? (gifts.find(g => g.id === editingId)?.image || "") : ""),
+    image: selectedImageData || (removeExistingImage ? "" : (editingId ? (gifts.find(g => g.id === editingId)?.image || "") : "")),
     link: document.getElementById("giftLink").value.trim()
   };
 
@@ -795,6 +812,8 @@ function editGift(id) {
   document.getElementById("giftEmoji").value = gift.emoji || "🎁";
   document.getElementById("giftDescription").value = gift.description || "";
   selectedImageData = "";
+  removeExistingImage = false;
+  document.getElementById("removeGiftImage").checked = false;
   document.getElementById("giftImageFile").value = "";
   const imagePreview = document.getElementById("giftImagePreview");
   imagePreview.textContent = gift.image ? "An image is already saved. Choose a new file to replace it." : "No picture selected.";
